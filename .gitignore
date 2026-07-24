@@ -31,4 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-/temas_recientes.save
+
+### Copia seguridad bot ###
+discord-bot-app/temas_recientes.save

@@ -1,12 +1,7 @@
-package com.cvr.discordbot.listeners;
+package com.cvr.discordbot.core;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -15,26 +10,28 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+
 /**
+ * Listener for new messages in the Discord server.
+ * This class listens for new messages in the Discord server and sends an alert message to a specific channel
+ * if the bot has permission to manage the channel where the event happened.
+ *
  * @author carlos
  *
  */
+@Slf4j
+@RequiredArgsConstructor
 public class MessageEventListener extends ListenerAdapter{
 
-	private final String guildId;
+    private final ChannelService channelService;
+    private final String guildId;
 	private final String channelId;
 	private final List<String> restrictedChannels;
 	private final EmbedBuilder embedBuilder;
 	private final Map<String, Long> currentAlerts;
-	
-	public MessageEventListener( final String guildId, final String channelId, final List<String> restrictedChannels,
-			final Map<String, Long> currentAlerts ) {
-		this.guildId = guildId;
-		this.channelId = channelId;
-		this.restrictedChannels = restrictedChannels;
-		this.embedBuilder = new EmbedBuilder();
-		this.currentAlerts = currentAlerts;
-	}
 	
 	/**
 	 *	Handler for new message event.
@@ -55,11 +52,16 @@ public class MessageEventListener extends ListenerAdapter{
 			final String mensaje = buildMessage( event.getMessage() ); 			
 		
 			final TextChannel textChannel = event.getJDA().getTextChannelById( this.channelId );
-		
+
+            if( textChannel == null ) {
+                log.error( "TextChannel {} not found", this.channelId );
+                return;
+            }
+
 			sendMessagesPermit = textChannel.canTalk() && !this.restrictedChannels.contains( event.getChannel().getId() );
 				
 			if( this.currentAlerts.get( event.getChannel().getId() ) != null ) {
-				ChannelUtils.deleteMessage( textChannel, this.currentAlerts.get( event.getChannel().getId() ), false );
+                channelService.deleteMessage( this.currentAlerts.get( event.getChannel().getId() ), false );
 			}		
 		
 			if( sendMessagesPermit ) {
@@ -67,12 +69,17 @@ public class MessageEventListener extends ListenerAdapter{
 				embedBuilder.setColor( new Color(0, 153, 0) );		
 				embedBuilder.setDescription( mensaje );
 				embeds.add( embedBuilder.build() );
-				
-				ChannelUtils.sendMessage( textChannel, embeds, currentAlerts, event.getChannel().getId() );
+
+                channelService.sendMessage( embeds, currentAlerts, event.getChannel().getId() );
 			}
 		}
 	}
-	
+
+    /**
+     * Returns the current alerts map.
+     *
+     * @return The current alerts map.
+     */
 	public Map<String, Long> getCurrentAlerts(){
 		return this.currentAlerts;
 	}

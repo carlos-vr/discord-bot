@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: discord-bot
+  config:
+    import: "configserver:https://discord-bot-config-server-production.up.railway.app"
+  cloud:
+    config:
+      username: ${CONFIG_SERVER_USER}
+      password: ${CONFIG_SERVER_PASSWORD}
