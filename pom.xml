@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.cvr</groupId>
 	<artifactId>discord-bot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>discord-bot</name>
 	<description>Bot for PdF Discord Server</description>
